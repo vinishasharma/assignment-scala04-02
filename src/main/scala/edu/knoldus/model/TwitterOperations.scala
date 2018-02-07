@@ -93,8 +93,8 @@ class TwitterOperations {
       val feedsListSize = tweetsList.size
       val reTweetsList = tweetsList.map(tweet => tweet.getRetweetCount)
       val favList = tweetsList.map(tweet => tweet.getFavoriteCount)
-      print(s"\n\n reTweetlist: $reTweetsList")
-      print(s"\n\n  fav list: $favList")
+      print(s"\n\n ReTweetlist: $reTweetsList")
+      print(s"\n\n  favourite list: $favList")
       (reTweetsList.sum / feedsListSize, favList.sum / feedsListSize.toDouble)
     }
     catch {
