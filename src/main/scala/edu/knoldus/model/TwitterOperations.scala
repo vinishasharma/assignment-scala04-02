@@ -1,15 +1,13 @@
 package edu.knoldus.model
 
-import java.util.Date
-
 import com.typesafe.config.{Config, ConfigFactory}
 import twitter4j.auth.AccessToken
 import twitter4j.{Query, Twitter, TwitterException, TwitterFactory}
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import edu.knoldus.entity.Tweets
 
-case class MyTweets(tweetText: String, userName: String, date: Date)
 
 class TwitterOperations {
 
@@ -29,7 +27,7 @@ class TwitterOperations {
     * @param hashTag
     * @return
     */
-  def getTweets(hashTag: String): Future[List[MyTweets]] = Future {
+  def getTweets(hashTag: String): Future[List[Tweets]] = Future {
     try {
       val query = new Query(hashTag)
       query.setSince("2018-01-20")
@@ -37,12 +35,12 @@ class TwitterOperations {
       val tweets = responseList.getTweets.asScala.toList
       val allTweets = tweets.map {
         tweet =>
-          MyTweets(tweet.getText, tweet.getUser.getScreenName, tweet.getCreatedAt)
+          Tweets(tweet.getText, tweet.getUser.getScreenName, tweet.getCreatedAt)
       }
       allTweets.sortBy(_.date)
     }
     catch {
-      case exception: TwitterException => List[MyTweets]()
+      case exception: TwitterException => List[Tweets]()
     }
   }
 
@@ -93,8 +91,6 @@ class TwitterOperations {
       val feedsListSize = tweetsList.size
       val reTweetsList = tweetsList.map(tweet => tweet.getRetweetCount)
       val favList = tweetsList.map(tweet => tweet.getFavoriteCount)
-      print(s"\n\n ReTweetlist: $reTweetsList")
-      print(s"\n\n  favourite list: $favList")
       (reTweetsList.sum / feedsListSize, favList.sum / feedsListSize.toDouble)
     }
     catch {
