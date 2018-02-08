@@ -1,13 +1,13 @@
-package edu.knoldus.model
+package edu.knoldus.services
 
 import com.typesafe.config.{Config, ConfigFactory}
 import twitter4j.auth.AccessToken
-import twitter4j.{Query, Twitter, TwitterException, TwitterFactory}
+import twitter4j._
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import edu.knoldus.entity.Tweets
-
 
 class TwitterOperations {
 
@@ -23,25 +23,17 @@ class TwitterOperations {
   /**
     * this method gives
     * total tweets
-    *
-    * @param hashTag
-    * @return
     */
   def getTweets(hashTag: String): Future[List[Tweets]] = Future {
-    try {
-      val query = new Query(hashTag)
+      val query: Query = new Query(hashTag)
       query.setSince("2018-01-20")
-      val responseList = twitter.search(query)
+      val responseList: QueryResult = twitter.search(query)
       val tweets = responseList.getTweets.asScala.toList
       val allTweets = tweets.map {
         tweet =>
           Tweets(tweet.getText, tweet.getUser.getScreenName, tweet.getCreatedAt)
       }
-      allTweets.sortBy(_.date)
-    }
-    catch {
-      case exception: TwitterException => List[Tweets]()
-    }
+    allTweets.sortBy(tweet => tweet.date)
   }
 
   /**
@@ -50,30 +42,24 @@ class TwitterOperations {
     */
 
   def getNumberOfTweets(hashTag: String): Future[Int] = Future {
-    try {
-      val query = new Query(hashTag)
+      val query: Query = new Query(hashTag)
       query.setSince("2018-01-20")
-      val responseList = twitter.search(query)
+      val responseList: QueryResult = twitter.search(query)
       val tweets = responseList.getTweets.asScala.toList
       tweets.size
-    }
-    catch {
-      case exception: Exception => 0
-    }
   }
-
-  def getAverageTweetsPDay(hashTag: String): Future[Int] = Future {
-    try {
-      val query = new Query(hashTag)
+  /**
+    * this method returns
+    * average tweets per day
+    */
+  def getAverageTweetsPerDay(hashTag: String): Future[Int] = Future {
+      val query: Query = new Query(hashTag)
       query.setSince("2018-01-20")
-      val responseList = twitter.search(query)
+      val responseList: QueryResult = twitter.search(query)
       val tweetsList = responseList.getTweets.asScala.toList
       val tweetsMapByDate = tweetsList.groupBy(tweet => tweet.getCreatedAt)
       tweetsList.size / tweetsMapByDate.size
-    }
-    catch {
-      case exception: Exception => 0
-    }
+
   }
 
   /**
@@ -83,18 +69,13 @@ class TwitterOperations {
     */
 
   def getAverageReTweetsAndLikes(hashTag: String): Future[(Int, Double)] = Future {
-    try {
-      val query = new Query(hashTag)
+      val query: Query = new Query(hashTag)
       query.setSince("2018-01-20")
-      val responseList = twitter.search(query)
+      val responseList: QueryResult = twitter.search(query)
       val tweetsList = responseList.getTweets.asScala.toList
-      val feedsListSize = tweetsList.size
+      val tweetsListSize = tweetsList.size
       val reTweetsList = tweetsList.map(tweet => tweet.getRetweetCount)
       val favList = tweetsList.map(tweet => tweet.getFavoriteCount)
-      (reTweetsList.sum / feedsListSize, favList.sum / feedsListSize.toDouble)
-    }
-    catch {
-      case exception: Exception => (0, 0)
-    }
+      (reTweetsList.sum / tweetsListSize, favList.sum / tweetsListSize.toDouble)
   }
 }
